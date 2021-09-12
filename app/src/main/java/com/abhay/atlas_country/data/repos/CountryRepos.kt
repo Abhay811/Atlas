@@ -8,7 +8,7 @@ import retrofit2.Response
 
 class CountryRepos {
 //    suspend fun getCountries(): Response<ResponseCountries> = RetrofitClient.api.getCountries()
-    suspend fun getCountries(): Call<ResponseCountries> {
+        fun getCountries(): Response<ResponseCountries> {
         return RetrofitClient.api.getCountries()
     }
 }

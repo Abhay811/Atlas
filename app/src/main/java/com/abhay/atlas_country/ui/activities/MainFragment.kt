@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -25,10 +26,9 @@ import com.abhay.atlas_country.data.models.ResponseCountry
 import com.abhay.atlas_country.databinding.FragmentMainBinding
 import com.abhay.atlas_country.network.RetrofitClient
 import com.abhay.atlas_country.utils.Resource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import retrofit2.*
 
 
 class MainFragment : Fragment() {
@@ -48,7 +48,10 @@ class MainFragment : Fragment() {
         binding.rvCountryCardView.adapter = adapter
         binding.rvCountryCardView.layoutManager= LinearLayoutManager(requireContext())
 
-        getCountry()
+        lifecycleScope.launch(Dispatchers.IO) {
+            getCountry()
+        }
+
 
         mCountryViewModel.readAllData.observe(viewLifecycleOwner, { country->
             adapter.setData(country)
@@ -101,29 +104,19 @@ class MainFragment : Fragment() {
 
     private fun getCountry()
     {
-        val country: Call<ResponseCountries> = RetrofitClient.api.getCountries()
-        country.enqueue(object : Callback<ResponseCountries> {
-            override fun onResponse(
-                call: Call<ResponseCountries>,
-                response: Response<ResponseCountries>
-            ) {
-                val count = response.body()
-                if (count != null) {
-                    for (i in count.indices) {
-                        insertToDatabase(count[i])
-                    }
-
+        val country: Response<ResponseCountries> = RetrofitClient.api.getCountries()
+        if (country.isSuccessful) {
+            for (count in country.body()!!) {
+                print (count.toString())
+                    insertToDatabase(count)
                 }
             }
-            override fun onFailure(call: Call<ResponseCountries>, t: Throwable) {
-                Log.d("Main123", "Error")
-            }
-        })
+
     }
 
     private fun insertToDatabase(responseCountry: ResponseCountry)
     {
-        lifecycleScope.launch {
+        lifecycleScope.launch(Dispatchers.IO) {
             val country = Country(
                 0,
                 responseCountry.name,

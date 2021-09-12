@@ -9,5 +9,5 @@ import retrofit2.http.GET
 interface ApiInterface {
 
     @GET("all")
-    fun getCountries(): Call<ResponseCountries>
+    fun getCountries(): Response<ResponseCountries>
 }
